@@ -1,0 +1,309 @@
+
+import pandas as pd
+import numpy as np
+from datetime import date, timedelta
+import sys
+
+
+DATAPATH = 'data/parquet'
+
+
+drzave = {
+  'Afriška samoa': 'Samoa'
+  , 'Antarktika': '-'
+  , 'Bosna in hercego': 'BiH'
+  , 'Bosna in hercegov': 'BiH'
+  , 'Brit.ozem.indij.': 'VB'
+  , 'Brit.ozemlje': 'VB'
+  , 'Burkina faso': 'Burkina Faso'
+  , 'Dem.ljudska korej': 'Koreja'
+  , 'Koreja(demokr.lj': 'Koreja'
+  , 'Koreja, republik': 'Koreja'
+  , 'Republika koreja': 'Koreja'
+  , 'Deviški otoki (z': 'Deviški otoki'
+  , 'Deviški otoki(br': 'Deviški otoki'
+  , 'Dominikanska rep': 'Dominikanska republika'
+  , 'Dominikanska repu': 'Dominikanska republika'
+  , 'Kostarica': 'Kostarika'
+  , 'El salvador': 'Salvador'
+  , 'Farski otoki': 'Ferski otoki'
+  , 'Francoska poline': 'Francija'
+  , 'Francoska polinez': 'Francija'
+  , 'Francosko južno o': 'Francija'
+  , 'Hong kong': 'Hong Kong'
+  , 'Hongkong': 'Hong Kong'
+  , 'Iran(islamska re': 'Iran'
+  , 'Južna afrika': 'JAR'
+  , 'Laoška ljudska de': 'Laos'
+  , 'Jamaica': 'Jamajka'
+  , 'Kn-ct': '-' # kva je pa tole, wtf?
+  , 'Macao': 'Macau'
+  , 'Makedonija, nekd': 'Makedonija'
+  , 'Nekdanja jugoslov': 'Makedonija'
+  , 'Mauritius': 'Mavricijus'
+  , 'Moldavija,republ': 'Moldavija'
+  , 'Nedefinirano': '-'
+  , 'Ni dolocena': '-'
+  , 'Ni določena': '-'
+  , 'Predeljen': '-'
+  , 'Nizozemski antili': 'Nizozemska'
+  , 'Nova kaledonija': 'Francija'
+  , 'Nova zelandija': 'Nova Zelandija'
+  , 'San marino': 'San Marino'
+  , 'Singapore': 'Singapur'
+  , 'Sirska arabska r': 'Sirija'
+  , 'Slonokoščena oba': 'Slonokoščena obala'
+  , 'Slonokoščena obal': 'Slonokoščena obala'
+  , 'Sierra leone': 'Sierra Leone'
+  , 'Saudova arabija': 'Saudova Arabija'
+  , 'Sauovai arabija': 'Saudova Arabija'
+  , 'Somalia': 'Somalija'
+  , 'Tajvan, provinca': 'Tajvan'
+  , 'Svaziland': 'Svazi'
+  , 'Tanzanija, zdr.r': 'Tanzanija'
+  , 'Zdr.arabski emir': 'ZAE'
+  , 'Zdr.države ameri': 'ZDA'
+  , 'Zdr.kralj.vel.br': 'VB'
+  , 'Združene države a': 'ZDA'
+  , 'Združeni arab.emi': 'ZAE'
+  , 'Združeno kraljest': 'VB'
+  , 'Zunanji otoki zdr': '-'
+}
+
+
+
+def artikel(): 
+    print('Artikel...', end='')
+    sys.stdout.flush()
+
+    artikel = pd.read_parquet(f'{DATAPATH}/artikel.parquet')
+    artikel['drzava_porekla'] = artikel.drzava_porekla.map(drzave).fillna(artikel.drzava_porekla)
+
+    print(' ok')
+    sys.stdout.flush()
+    return artikel
+
+
+
+def vreme():
+    print('Vreme...', end='')
+    sys.stdout.flush()
+
+    vreme = pd.read_parquet(f'{DATAPATH}/vreme.parquet')
+
+    print(' ok')
+    sys.stdout.flush()
+  
+    return vreme
+
+
+#
+#
+#
+# URNIK
+#
+#
+
+def urnik():
+    print('Urnik...', end='')
+    sys.stdout.flush()
+  
+    urnik = pd.read_parquet(f'{DATAPATH}/urnik.parquet')
+
+    print(' ok')
+    sys.stdout.flush()
+
+    return urnik
+
+
+
+def enota():
+    print('Enota...', end='')
+    sys.stdout.flush()
+
+    enota = pd.read_parquet(f'{DATAPATH}/enota.parquet')
+
+    print(' ok')
+    sys.stdout.flush()
+
+    return enota
+
+
+
+#def koledar(od='20100101', do=date.today()-timedelta(days=1), mesec_1hot=True, dan_1hot=True):
+def koledar(od='20100101', do='20201231', mesec_1hot=True, dan_1hot=True):
+  # vzamemo eno leto prej in eno leto potem za generiranje, bomo na koncu odrezali od:do
+    koledar = pd.concat([
+    pd.DataFrame(index=pd.date_range(end=od, periods=366, freq='D', closed='left'))
+    , pd.DataFrame(index=pd.date_range(od, do, freq='D'))
+    , pd.DataFrame(index=pd.date_range(start=do, periods=366, freq='D', closed='right'))
+    ])
+
+    koledar.index.names = ['datum']
+
+    koledar['leto'] = (koledar.index.year - koledar.index.year.min()).astype(np.int8)
+    koledar['mm'] = koledar.index.month.astype(np.int8)
+    koledar['dd'] = koledar.index.day.astype(np.int8)
+    koledar['ddd'] = koledar.index.dayofyear.astype(np.int16)
+    koledar['wd'] = koledar.index.weekday.astype(np.int8)
+    koledar['w'] = koledar.index.week.astype(np.int8)
+
+  #koledar['datum'] = (100*koledar.index.month + koledar.index.day)
+
+    if mesec_1hot:
+        mm_1hot = pd.get_dummies(koledar.mm)
+        mm_1hot.columns = 'jan feb mar apr maj jun jul avg sep okt nov dec'.split()
+        koledar = koledar.join(mm_1hot)
+
+    wd_1hot = pd.get_dummies(koledar.wd)
+    wd_1hot.columns = 'pon tor sre čet pet sob ned'.split()
+
+    if dan_1hot: 
+        koledar = koledar.join(wd_1hot)
+
+  #dd_1hot = pd.get_dummies(koledar.dd, prefix='dd').astype(np.int8)
+  #datum_1hot = pd.get_dummies(koledar.datum, prefix='datum')
+
+  # prazniki
+     koledar['jan1']  = ((koledar.index.day ==  1) & (koledar.index.month ==  1)).astype(np.int8)
+     koledar['jan2']  = ((koledar.index.day ==  2) & (koledar.index.month ==  1) & ~koledar.index.year.isin([2013, 2014, 2015, 2016])).astype(np.int8)
+    koledar['feb8']  = ((koledar.index.day ==  8) & (koledar.index.month ==  2)).astype(np.int8)
+     koledar['apr27'] = ((koledar.index.day == 27) & (koledar.index.month ==  4)).astype(np.int8)
+     koledar['maj1']  = ((koledar.index.day ==  1) & (koledar.index.month ==  5)).astype(np.int8)
+     koledar['maj2']  = ((koledar.index.day ==  2) & (koledar.index.month ==  5)).astype(np.int8)
+     koledar['jun25'] = ((koledar.index.day == 25) & (koledar.index.month ==  6)).astype(np.int8)
+     koledar['avg15'] = ((koledar.index.day == 15) & (koledar.index.month ==  8)).astype(np.int8)
+     koledar['okt31'] = ((koledar.index.day == 31) & (koledar.index.month == 10)).astype(np.int8)
+     koledar['nov1']  = ((koledar.index.day ==  1) & (koledar.index.month == 11)).astype(np.int8)
+     koledar['dec25'] = ((koledar.index.day == 25) & (koledar.index.month == 12)).astype(np.int8)
+     koledar['dec26'] = ((koledar.index.day == 26) & (koledar.index.month == 12)).astype(np.int8)
+
+  # velika noc in obdobja pred njo
+     koledar['velnoc'] = koledar.index.isin([
+    '20100405', '20110425', '20120409', '20130401', '20140421', '20150406',
+    '20160328', '20170417', '20180402', '20190422', '20200413', '20210405',
+    '20220418', '20230410', '20240401', '20250421', '20260406', '20270329',
+    '20280417', '20290402', '20300422']).astype(np.int8)
+
+  # ostali pomembni datumi
+    koledar['pust_tor'] = koledar.velnoc.shift(-48).fillna(0).astype(np.int8)
+    koledar['pust_sob'] = koledar.velnoc.shift(-51).fillna(0).astype(np.int8)
+    koledar['pust_cet'] = koledar.velnoc.shift(-53).fillna(0).astype(np.int8)
+    koledar['pust'] = koledar.velnoc.shift(-53).fillna(0).rolling(window=6).sum().fillna(0).astype(np.int8)
+    koledar['valentinovo'] = ((koledar.index.day == 14) & (koledar.index.month == 2)).astype(np.int8)
+    koledar['danzena'] = ((koledar.index.day == 8) & (koledar.index.month == 3)).astype(np.int8)
+    koledar['martinovo'] = ((koledar.index.day == 11) & (koledar.index.month == 11)).astype(np.int8)
+    koledar['miklavz'] = ((koledar.index.day == 5) & (koledar.index.month == 12)).astype(np.int8)
+  # oznaka dni pred in med pomembnimi datumi
+  #koledar['pomembni_datumi_1t'] = (koledar.pust_tor+koledar.pust_sob+koledar.pust_cet+koledar.pust+
+  #                              koledar.valentinovo+koledar.danzena+koledar.martinovo+koledar.miklavz > 0).astype(np.int8)
+  #koledar['pomembni_datumi_1t'] = (koledar.pomembni_datumi_1t.shift(-3).rolling(7).sum().fillna(0) > 0).astype(np.int8)
+    koledar['pust_10dni'] = (koledar['pust_tor'].shift(-11).rolling(10).sum().fillna(0)).astype(np.int8)
+    koledar['valentinovo_7dni'] = (koledar['valentinovo'].shift(-6).rolling(7).sum().fillna(0)).astype(np.int8)
+    koledar['danzena_7dni'] = (koledar['danzena'].shift(-6).rolling(7).sum().fillna(0)).astype(np.int8)
+    koledar['martinovo_14dni'] = (koledar['martinovo'].shift(-8).rolling(14).sum().fillna(0)).astype(np.int8)
+    koledar['miklavz_7dni'] = (koledar['miklavz'].shift(-7).rolling(7).sum().fillna(0)).astype(np.int8)
+
+  # izpeljave
+    koledar['praznik'] = koledar.loc[:,'jan1 jan2 feb8 apr27 velnoc maj1 maj2 jun25 avg15 okt31 nov1 dec25 dec26'.split()].sum(axis=1)
+    koledar['prosto'] = (koledar.praznik + wd_1hot.sob + wd_1hot.ned > 0).astype(np.int8)
+
+    koledar['jutri_praznik'] = (koledar.praznik.shift(-1).fillna(0)*(1-koledar.praznik)).astype(np.int8)
+    koledar['praznik_3d'] = koledar.praznik.shift(-4).rolling(3).sum().fillna(0).astype(np.int8)
+
+    koledar['jutri_pust_sob'] = koledar.pust_sob.shift(-1).fillna(0).astype(np.int8)
+
+  # oznaka dnevov pred pomembnimi prazniki 
+    koledar['velnoc_3d'] = koledar.velnoc.shift(-4).rolling(3).sum().fillna(0).astype(np.int8)
+    koledar['velnoc_14d'] = koledar.velnoc.shift(-14).rolling(13).sum().fillna(0).astype(np.int8)
+  #koledar['vn'] = koledar.velnoc.shift(-5).rolling(4).sum().fillna(0).astype(np.int8) + \
+  #  koledar.velnoc.shift(-4).rolling(3).sum().fillna(0).astype(np.int8) + \
+  #  koledar.velnoc.shift(-3).rolling(2).sum().fillna(0).astype(np.int8) + \
+  #  koledar.velnoc.shift(-2).rolling(1).sum().fillna(0).astype(np.int8)
+
+    for i in range(1, 6):
+        koledar['prosto_nasl_{}d'.format(i)] = koledar.prosto.shift(-i).rolling(i).sum().fillna(0).astype(np.int8)
+    #koledar['prosto_prej_{}d'.format(i)] = koledar.prosto.shift(i).rolling(i-1).sum().fillna(0).astype(np.int8)
+        koledar['prosto_prej_2d'.format(i)] = koledar.prosto.shift(2).rolling(2).sum().fillna(0).astype(np.int8)
+
+
+  # mercatorjevi datumi
+  #koledar['pika'] = ((koledar.index.day.isin([29, 30, 31])) & koledar.index.month.isin([1, 7])).astype(np.int8)
+    koledar['pika'] = ((koledar.index.day.isin([31])) & koledar.index.month.isin([1, 7])).astype(np.int8)
+    koledar['pika_teden'] = ((koledar.index.day.isin([25,26,27,28,29,30,31])) & koledar.index.month.isin([1, 7])).astype(np.int8)
+    koledar['pika_2tedna'] = ((koledar.index.day.isin([18,19,20,21,22,23,24,25,26,27,28,29,30,31])) & koledar.index.month.isin([1, 7])).astype(np.int8)
+    koledar['dec_2tedna'] = ((koledar.index.day.isin(
+    [20, 21, 22, 23, 24, 26, 27, 28, 29, 30, 31])) & koledar.index.month.isin([12])).astype(np.int8)
+    koledar['konec_okt'] = ((koledar.index.day.isin(
+    [27, 28, 29, 30])) & koledar.index.month.isin([10])).astype(np.int8)
+
+  # todo:
+  # + build up N dni pred veliko nocjo, pika obdobjem, itd.
+  # + dodaj pocitnice
+  # + dodaj urnik/zaprto!
+  # + dodaj vreme
+  # + placa, penzija, obracunsko obdobje (18. v mesecu)
+
+  # posebni dnevi za prodajo
+  #koledar['dec24']  = ((koledar.index.day == 24) & (koledar.index.month == 12)).astype(np.int8)
+  #koledar['dec31']  = ((koledar.index.day == 31) & (koledar.index.month == 12)).astype(np.int8)
+  #koledar['apr30']  = ((koledar.index.day == 30) & (koledar.index.month ==  4)).astype(np.int8)
+
+  #koledar['placa'] = (koledar.index.day==15 & koledar.prosto==0).astype(np.int8)
+    koledar['placa'] = (koledar.index.day.isin({15, 16, 17})).astype(np.int8)
+    koledar['placa_javni'] = (koledar.index.day.isin({5, 6, 7})).astype(np.int8) #, 5, 6, 7) & koledar.prosto == 0
+
+
+  # placa je zadnji delovni dan pred 16. v mesecu
+  """placa = koledar[koledar.prosto==0].loc[koledar.dd<16]
+  placa = placa.groupby([placa.index.year, placa.index.month]).agg({'dd': 'max'})
+  placa = placa.reset_index()
+  placa.columns=['year', 'month', 'day']
+  placa = pd.to_datetime(placa)"""
+
+  #koledar['placa'] = koledar.index.isin(placa).astype(np.int8)
+  #koledar['placa'] = koledar.placa.rolling(window=5).sum()
+
+
+  # penzija je zadnji delovni dan v mesecu
+  #penzija = koledar.groupby([koledar.prosto, koledar.index.year, koledar.index.month]).agg({'dd': 'max'}).loc[0]
+  #penzija = penzija.reset_index()
+  #penzija.columns=['year', 'month', 'day']
+  #penzija = pd.to_datetime(penzija)
+
+    koledar['penzija'] = koledar.index.day.isin({1, 2, 3}).astype(np.int8)
+    koledar['penzija'] = koledar['penzija'].shift(-1)
+
+  # razdelitev meseca
+    koledar['prva_tretjina'] = (koledar.index.day <= 10).astype(np.int8)
+    koledar['druga_tretjina'] = ((koledar.index.day > 10) & (koledar.index.day <= 20)).astype(np.int8)
+    koledar['tretja_tretjina'] = (koledar.index.day > 20).astype(np.int8)
+
+  """
+  #praznik['pred_veliko_nocjo_5d'] = koledar.velika_noc.shift(-6).rolling(window=5).max()
+  #praznik['pred_veliko_nocjo_3d'] = koledar.velika_noc.shift(-4).rolling(window=3).max()
+
+  # posebni dnevi pomembni za prodajo
+  #koledar['dec24'] = ((koledar.index.day == 24) & (koledar.index.month == 12) & ~(df.index.weekday==6)).astype('float')
+  #koledar['dec31'] = ((koledar.index.day == 31) & (koledar.index.month == 12) & ~(df.index.weekday==6)).astype('float')
+  #koledar['advent'] = ((koledar.index.day >= 15) & (koledar.index.month == 12)).astype('float')
+
+  koledar['praznik'] = koledar.jan1 + koledar.jan2 + koledar.feb8 + koledar.velika_noc + koledar.apr27 + koledar.maj1 + koledar.maj2 + koledar.jun25 + koledar.avg15 + koledar.okt31 + koledar.nov1 + koledar.dec25 + koledar.dec26
+  koledar['praznik_jutri'] = koledar.praznik.shift(-1)
+  koledar['praznik_vceraj'] = koledar.praznik.shift(1)
+  #koledar.drop('praznik', axis=1)
+
+  koledar['pon_tor_sre'] = ( (koledar.index.weekday<3) & (koledar.index < '20140501') ).astype('int')
+  koledar['torki'] = ( koledar.index.weekday.isin([1]) & (koledar.index < '20140501') ).astype('int')
+  koledar['cetrtki'] = ( koledar.index.weekday.isin([3]) & (koledar.index < '20140501') ).astype('int')
+
+  koledar['prosto'] = ( (koledar.praznik + koledar.sob + koledar.ned) > 0).astype('int')
+  koledar['prosto3d'] = koledar.prosto.shift(-4).rolling(window=3, min_periods=1, center=False).sum().fillna(0)
+
+
+  """
+
+    return koledar.loc[od:do]
+
+
+

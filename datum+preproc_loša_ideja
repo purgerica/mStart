@@ -1,0 +1,40 @@
+#for art, new_df in podaci.groupby(level=0):
+    #dat = new_df.index.get_level_values('datum').dayofweek
+#for i in range(0,n):
+ #       if datumSeries[i].dayofweek == 5:
+  #          print(i, datumSeries[i].dayofweek)
+   #         podaci.loc['Saturday'] = 1
+    #    if datumSeries[i].dayofweek == 6:
+     #       print("nedjelja")
+            #podaci['Sunday'] = 1
+      #  if datumSeries[i].dayofweek == 0:
+       #     print("ponedjeljak")
+            #podaci['Monday'] = 1
+        #if datumSeries[i].dayofweek == 1:
+         #   print("utorak")
+            #podaci['Tuesday'] = 1
+   #     if datumSeries[i].dayofweek == 2:
+    #        print("srijeda")
+            #podaci['Wednesday'] = 1
+     #   if datumSeries[i].dayofweek == 3:
+      #      print("četvrtak")
+            #podaci['Thursday'] = 1
+       # if datumSeries[i].dayofweek == 4:
+        #    print("petak")
+            #podaci['Friday'] = 1
+			
+			
+#for art, new_df in podaci.groupby(level=0):
+ #   dat = new_df.index.get_level_values('datum').weekday
+  #  for i in dat:
+   #     print(art,new_df.index.get_level_values('datum')[i], dat[i])
+   
+#podaciNoIndex = podaci_s.reset_index()
+
+#datumSeries = podaciNoIndex['datum']
+#datumSeries[0].dayofweek
+
+#for art in podaci.groupby(level=0):
+ #   datumi38 = podaci.index.get_level_values('datum') 
+#print(datumi38)
+    #print(podaci.index.get_level_values('datum'))

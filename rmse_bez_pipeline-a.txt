@@ -1,0 +1,16 @@
+rmse nakon što sam izbacila outliere i skalirala svaki stupac zasebno
+
+rmse_38_train = 112.89678015581427
+rmse_38_test  = 114.81159850039614
+
+rmse_39_train = 1216.04482427627
+rmse_39_test  = 993.1895047746376
+
+rmse_40_train = 55.609190377846026
+rmse_40_test  = 53.902221005848034
+
+rmse_41_train = 8.80552233745483
+rmse_41_test  = 10.600484107715424
+
+rmse_57_train = 22.017774228029243
+rmse_57_test  = 24.03014165425065
